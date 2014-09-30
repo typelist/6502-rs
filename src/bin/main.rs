@@ -25,11 +25,9 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-mod address;
-mod machine;
-mod memory;
-mod registers;
-mod util;
+extern crate emu6502;
+
+use emu6502::machine;
 
 fn main() {
 	let mut machine = machine::Machine::new();
@@ -39,16 +37,4 @@ fn main() {
 	machine.add_with_carry(1);
 	println!("A: {}", machine.registers.accumulator);
 }
-
-/*
-extern crate machine6502;
-
-use machine6502::defs::Machine;
-
-fn main() {
-    let _q = Machine::new();
-
-    println!("Hello, 6502?");
-}
-*/
 

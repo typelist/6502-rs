@@ -33,5 +33,9 @@ authors = ["The 6502-rs Developers"]
 
 [lib]
 name = "emu6502"
-path = "src/emu6502/lib.rs"
+
+[[bin]]
+
+# This will look in src/bin ... ? 
+name = "emu6502"
 
