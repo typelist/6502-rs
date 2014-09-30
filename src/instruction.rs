@@ -25,81 +25,87 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+// Abbreviations
+//
+// General
+//
+//        M | `Memory location`
+//
+// Registers
+//
+//        A | accumulator
+//        X | general purpose register
+//        Y | general purpose register
+//        F | processor status flags, collectively
+// NV-BDIZC | processor status flags, individually
+//        S | stack pointer
+//       PC | program counter
+//
 
 #[deriving(Show, PartialEq, Eq)]
 pub enum Instruction
-      // Abbreviations
-      //
-      // General
-      //
-      //        M | `Memory location`
-      //
-      // Registers
-      //
-      //        A | accumulator
-      //        X | general purpose register
-      //        Y | general purpose register
-      // NV-BDIZC | processor status flags -- see ProcessorStatus bitflags
-      //       SP | stack pointer
-      //       PC | program counter
       //                                  i/o vars should be listed as follows:
-      //                                  NV BDIZC A X Y SP PC M
+      //                                  NV BDIZC A X Y S PC M
       //
-      //                                | outputs                | inputs
-{ ADC // ADd with Carry................ | NV ...ZC A             = A + M + C
-, AND // logical AND (bitwise)......... | N. ...Z. A             = A && M
-, ASL // Arithmetic Shift Left......... | N. ...ZC A             = M << 1
-, BCC // Branch if Carry Clear......... | .. .....          PC   = !C
-, BCS // Branch if Carry Set........... | .. .....          PC   = C
-, BEQ // Branch if Equal (to zero?).... | .. .....          PC   = Z
-, BIT // BIT test...................... | NV ...Z.               = A & M
-, BMI // Branch if Minus............... | .. .....          PC   = N
-, BNE // Branch if Not Equal........... | .. .....          PC   = !Z
-, BPL // Branch if Positive............ | .. .....          PC   = Z
-, BRK // BReaK......................... | .. B....       SP PC   =
-, BVC // Branch if oVerflow Clear...... | .. .....          PC   = !V
-, BVS // Branch if oVerflow Set........ | .. .....          PC   = V
-, CLC // CLear Carry flag.............. | .. ....C               = 0
-, CLD // Clear Decimal Mode............ | .. .D...               = 0
-, CLI // Clear Interrupt Disable....... | .. ..I..               = 0
-, CLV // Clear oVerflow flag........... | .V .....               = 0
-, CMP // Compare....................... | N. ...ZC               = A - M
-, CPX // Compare X register............ | N. ...ZC               = X - M
-, CPY // Compare Y register............ | N. ...ZC               = Y - M
-, DEC // DECrement memory.............. | N. ...Z.             M = M - 1
-, DEX // DEcrement X register.......... | N. ...Z.   X           = X - 1
-, DEY // DEcrement Y register.......... | N. ...Z.     Y         = Y - 1
-, EOR // Exclusive OR (bitwise)........ | N. ...Z. A             = A ^ M
-, INC // INCrement memory.............. | N. ...Z.             M = M + 1
-, INX // INcrement X register.......... | N. ...Z.   X           = X + 1
-, INY // INcrement Y register.......... | N. ...Z.     Y         = Y + 1
-, JMP // JuMP.......................... | .. .....          PC   =
-, JSR // Jump to SubRoutine............ | .. .....
-, LDA // LoaD Accumulator.............. | .. .....
-, LDX // LoaD X register............... | .. .....
-, LDY // LoaD Y register............... | .. .....
-, LSR // Logical Shift Right........... | .. .....
-, NOP // No OPeration.................. | .. .....
-, ORA // inclusive OR.................. | .. .....
-, PHA // PusH Accumulator.............. | .. .....
-, PHP // PusH Processor status......... | .. .....
-, PLA // PuLl Accumulator.............. | .. .....
-, PLP // PuLl Processor status......... | .. .....
-, ROL // ROtate Left................... | .. .....
-, ROR // ROtate Right.................. | .. .....
-, RTI // ReTurn from Interrupt......... | .. .....
-, RTS // ReTurn from Subroutine........ | .. .....
-, SBC // SuBtract with Carry........... | .. .....
-, SEC // SEt Carry flag................ | .. .....
-, SED // SEt Decimal flag.............. | .. .....
-, SEI // SEt Interrupt disable......... | .. .....
-, STA // STore Accumulator............. | .. .....
-, STX // STore X register.............. | .. .....
-, STY // STore Y register.............. | .. .....
-, TAX // Transfer Accumulator to X..... | .. .....
-, TAY // Transfer Accumulator to Y..... | .. .....
-, TSX // Transfer Stack pointer to X... | .. .....
-, TXA // Transfer X to Accumulator..... | .. .....
-, TXS // Transfer X to Stack pointer... | .. .....
-, TYA // Transfer Y to Accumulator..... | .. .....
+      //                                | outputs               | inputs
+{ ADC // ADd with Carry................ | NV ...ZC A            = A + M + C
+, AND // logical AND (bitwise)......... | N. ...Z. A            = A && M
+, ASL // Arithmetic Shift Left......... | N. ...ZC A            = M << 1
+, BCC // Branch if Carry Clear......... | .. .....         PC   = !C
+, BCS // Branch if Carry Set........... | .. .....         PC   = C
+, BEQ // Branch if Equal (to zero?).... | .. .....         PC   = Z
+, BIT // BIT test...................... | NV ...Z.              = A & M
+, BMI // Branch if Minus............... | .. .....         PC   = N
+, BNE // Branch if Not Equal........... | .. .....         PC   = !Z
+, BPL // Branch if Positive............ | .. .....         PC   = Z
+, BRK // BReaK......................... | .. B....       S PC   =
+, BVC // Branch if oVerflow Clear...... | .. .....         PC   = !V
+, BVS // Branch if oVerflow Set........ | .. .....         PC   = V
+, CLC // CLear Carry flag.............. | .. ....C              = 0
+, CLD // Clear Decimal Mode............ | .. .D...              = 0
+, CLI // Clear Interrupt Disable....... | .. ..I..              = 0
+, CLV // Clear oVerflow flag........... | .V .....              = 0
+, CMP // Compare....................... | N. ...ZC              = A - M
+, CPX // Compare X register............ | N. ...ZC              = X - M
+, CPY // Compare Y register............ | N. ...ZC              = Y - M
+, DEC // DECrement memory.............. | N. ...Z.            M = M - 1
+, DEX // DEcrement X register.......... | N. ...Z.   X          = X - 1
+, DEY // DEcrement Y register.......... | N. ...Z.     Y        = Y - 1
+, EOR // Exclusive OR (bitwise)........ | N. ...Z. A            = A ^ M
+, INC // INCrement memory.............. | N. ...Z.            M = M + 1
+, INX // INcrement X register.......... | N. ...Z.   X          = X + 1
+, INY // INcrement Y register.......... | N. ...Z.     Y        = Y + 1
+, JMP // JuMP.......................... | .. .....       S PC   =
+, JSR // Jump to SubRoutine............ | .. .....       S PC   =
+, LDA // LoaD Accumulator.............. | N. ...Z. A            = M
+, LDX // LoaD X register............... | N. ...Z.   X          = M
+, LDY // LoaD Y register............... | N. ...Z.     Y        = M
+, LSR // Logical Shift Right........... | N. ...ZC A            = A/2
+      //                               or N. ...ZC            M = M/2
+, NOP // No OPeration.................. | .. .....              =
+, ORA // inclusive OR (bitwise)........ | N. ...Z. A            = A | M
+, PHA // PusH Accumulator.............. | .. .....       S    M = A
+, PHP // PusH Processor status......... | .. .....       S    M = F
+, PLA // PuLl Accumulator.............. | N. ...Z. A     S      = M (stack)
+, PLP // PuLl Processor status......... | NV BDIZC       S      = M (stack)
+, ROL // ROtate Left................... | N. ...ZC A            = C A rotated
+      //                               or N. ...ZC            M = C M rotated
+, ROR // ROtate Right.................. | N. ...ZC A            = C A rotated
+      //                               or N. ...ZC            M = C M rotated
+, RTI // ReTurn from Interrupt......... | NV BDIZC         PC   = M (stack)
+, RTS // ReTurn from Subroutine........ | .. .....         PC   = M (stack)
+, SBC // SuBtract with Carry........... | NV ...ZC A            = A-M-(1-C)
+, SEC // SEt Carry flag................ | .. ....C              = 1
+, SED // SEt Decimal flag.............. | .. .D...              = 1
+, SEI // SEt Interrupt disable......... | .. ..I..              = 1
+, STA // STore Accumulator............. | .. .....            M = A
+, STX // STore X register.............. | .. .....            M = X
+, STY // STore Y register.............. | .. .....            M = Y
+, TAX // Transfer Accumulator to X..... | N. ...Z.   X          = A
+, TAY // Transfer Accumulator to Y..... | N. ...Z.     Y        = A
+, TSX // Transfer Stack pointer to X... | N. ...Z.   X          = S
+, TXA // Transfer X to Accumulator..... | N. ...Z. A            = X
+, TXS // Transfer X to Stack pointer... | .. .....       S      = X
+, TYA // Transfer Y to Accumulator..... | N. ...Z. A            = Y
 }
+

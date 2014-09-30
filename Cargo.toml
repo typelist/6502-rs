@@ -26,16 +26,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 [package]
-
 name = "emu6502"
 version = "0.0.1"
 authors = ["The 6502-rs Developers"]
 
 [lib]
+# This will look in src/lib.rs
 name = "emu6502"
 
 [[bin]]
-
-# This will look in src/bin ... ? 
+# This will look in src/bin/emu6502.rs
 name = "emu6502"
 

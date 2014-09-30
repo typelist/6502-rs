@@ -26,27 +26,36 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 use address::Address;
-use address::AddressDiff;
-use registers::StackPointer;
 
-pub static MEMORY_ADDRESS_BEGIN:    Address = Address(0x0000);
-pub static MEMORY_ADDRESS_END:      Address = Address(0xFFFF);
+// JAM: We can probably come up with a better way to represent address ranges.
+//      Address range type?
+// 
+// // Address range -- inclusive on both sides
+// pub struct AddressRangeIncl {
+//     begin: Address,
+//     end: Address,
+// }
+
+static ADDR_LO_BARE: u16 = 0x0000;
+static ADDR_HI_BARE: u16 = 0xFFFF;
+
+pub static MEMORY_ADDRESS_BEGIN:    Address = Address(ADDR_LO_BARE);
+pub static MEMORY_ADDRESS_END:      Address = Address(ADDR_HI_BARE);
 pub static STACK_ADDRESS_BEGIN:     Address = Address(0x0100);
 pub static STACK_ADDRESS_END:       Address = Address(0x01FF);
 pub static IRQ_INTERRUPT_VECTOR_LO: Address = Address(0xFFFE);
 pub static IRQ_INTERRUPT_VECTOR_HI: Address = Address(0xFFFF);
 
+static MEMORY_SIZE: uint = (ADDR_HI_BARE - ADDR_LO_BARE) as uint + 1u;
 
-// static MEMORY_SIZE: uint    = MEMORY_ADDRESS_END - MEMORY_ADDRESS_BEGIN + 1;
 pub struct Memory {
 	// Rust doesn't seem to like this:
-	// bytes: [u8, ..MEMORY_SIZE]
-	bytes: [u8, ..2^16]
+	 bytes: [u8, ..MEMORY_SIZE]
 }
 
 impl Memory {
 	pub fn new() -> Memory {
-		Memory { bytes: [0, ..2^16] }
+		Memory { bytes: [0, ..MEMORY_SIZE] }
 	}
 
 	pub fn get_byte(&self, address: &Address) -> u8 {
@@ -64,10 +73,5 @@ impl Memory {
 
 	pub fn is_stack_address(address: &Address) -> bool {
 		STACK_ADDRESS_BEGIN <= *address && *address <= STACK_ADDRESS_END
-	}
-
-	pub fn stack_pointer_to_address(&StackPointer(sp): &StackPointer) -> Address
-	{
-		STACK_ADDRESS_BEGIN + AddressDiff(sp as u16)
 	}
 }

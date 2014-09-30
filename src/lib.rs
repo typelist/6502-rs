@@ -26,8 +26,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 pub mod address;
+pub mod instruction;
 pub mod machine;
 pub mod memory;
 pub mod registers;
-pub mod util;
 

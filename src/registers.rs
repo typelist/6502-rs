@@ -25,69 +25,118 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-use memory::STACK_ADDRESS_END;
-use util::{ BitFlag, Off, On };
+use address::{Address, AddressDiff};
+use memory::{STACK_ADDRESS_BEGIN, STACK_ADDRESS_END};
 
-pub struct Status {
-	pub carry:              BitFlag,
-	pub zero:               BitFlag,
-	pub disable_interrupts: BitFlag,
-	pub decimal_mode:       BitFlag,
-	pub brk:                BitFlag,
-	pub unused:             BitFlag,
-	pub overflow:           BitFlag,
-	pub negative:           BitFlag
+// Useful for constructing Status instances
+pub struct StatusArgs {
+    pub carry: bool,
+    pub zero: bool,
+    pub disable_interrupts: bool,
+    pub decimal_mode: bool,
+    pub brk: bool,
+    pub unused: bool,
+    pub overflow: bool,
+    pub negative: bool,
+}
+
+impl StatusArgs {
+    pub fn none() -> StatusArgs {
+        StatusArgs { carry: false,
+                     zero: false,
+                     disable_interrupts: false,
+                     decimal_mode: false,
+                     brk: false,
+                     unused: false,
+                     overflow: false,
+                     negative: false, }
+    }
+}
+
+pub bitflags! {
+    flags Status: u8 {
+        static ps_negative           = 0b10000000,
+        static ps_overflow           = 0b01000000,
+        static ps_unused             = 0b00100000, // JAM: Should this exist?
+        static ps_brk                = 0b00010000,
+        static ps_decimal_mode       = 0b00001000,
+        static ps_disable_interrupts = 0b00000100,
+        static ps_zero               = 0b00000010,
+        static ps_carry              = 0b00000001,
+    }
 }
 
 impl Status {
-	pub fn to_byte(&self) -> u8 {
-		  self.carry.to_bit()              << 0
-		| self.zero.to_bit()               << 1
-		| self.disable_interrupts.to_bit() << 2
-		| self.decimal_mode.to_bit()       << 3
-		| self.brk.to_bit()                << 4
-		| self.unused.to_bit()             << 5
-		| self.overflow.to_bit()           << 6
-		| self.negative.to_bit()           << 7
-	}
+    pub fn default() -> Status {
+        // TODO akeeton: Revisit these defaults.
 
-	pub fn new() -> Status {
-		// TODO akeeton: Revisit these defaults.
-		Status {
-			carry:              Off,
-			zero:               Off,
-			disable_interrupts:  On,
-			decimal_mode:       Off,
-			brk:                Off,
-			unused:              On,
-			overflow:           Off,
-			negative:           Off
-		}
-	}
+        Status::new(StatusArgs { negative:           false,
+                                 overflow:           false,
+                                 unused:             true,
+                                 brk:                false,
+                                 decimal_mode:       false,
+                                 disable_interrupts: true,
+                                 zero:               false,
+                                 carry:              false, } )
+    }
+
+    pub fn new(StatusArgs { negative, overflow, unused, brk,
+                            decimal_mode, disable_interrupts,
+                            zero, carry }: StatusArgs) -> Status
+    {
+        let mut out = Status::empty();
+
+        if negative           { out = out | ps_negative           }
+        if overflow           { out = out | ps_overflow           }
+        if unused             { out = out | ps_overflow           }
+        if brk                { out = out | ps_brk                }
+        if decimal_mode       { out = out | ps_decimal_mode       }
+        if disable_interrupts { out = out | ps_disable_interrupts }
+        if zero               { out = out | ps_zero               }
+        if carry              { out = out | ps_carry              }
+
+        out
+    }
+
+    pub fn set_with_mask(&mut self, mask: Status, rhs: Status) {
+        *self = (*self & !mask) & rhs;
+    }
+
+    pub fn get_carry(self) -> i8 {
+        if self.contains(ps_carry) { 1 } else { 0 }
+    }
 }
 
 #[deriving(PartialEq, Eq, PartialOrd, Ord)]
 pub struct StackPointer(pub u8);
 
+impl StackPointer {
+    pub fn to_address(&StackPointer(sp): &StackPointer) -> Address
+    {
+        STACK_ADDRESS_BEGIN + AddressDiff(sp as u16)
+    }
+}
+
 pub struct Registers {
-	pub accumulator:     i8,
-	pub index_x:         i8,
-	pub index_y:         i8,
-	pub stack_pointer:   StackPointer,
-	pub program_counter: u16,
-	pub status:          Status
+    pub accumulator:     i8,
+    pub index_x:         i8,
+    pub index_y:         i8,
+    pub stack_pointer:   StackPointer,
+    pub program_counter: Address,
+    pub status:          Status
 }
 
 impl Registers {
-	pub fn new() -> Registers {
-		// TODO akeeton: Revisit these defaults.
-		Registers {
-			accumulator:     0,
-			index_x:         0,
-			index_y:         0,
-			stack_pointer:   StackPointer(STACK_ADDRESS_END.get_offset()),
-			program_counter: 0,
-			status:          Status::new()
-		}
-	}
+    pub fn new() -> Registers {
+        // TODO akeeton: Revisit these defaults.
+        Registers {
+            accumulator:     0,
+            index_x:         0,
+            index_y:         0,
+            stack_pointer:   StackPointer(STACK_ADDRESS_END.get_offset()),
+            program_counter: Address(0),
+            status:          Status::default()
+        }
+    }
 }
+
