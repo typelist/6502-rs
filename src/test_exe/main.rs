@@ -39,3 +39,16 @@ fn main() {
 	machine.add_with_carry(1);
 	println!("A: {}", machine.registers.accumulator);
 }
+
+/*
+extern crate machine6502;
+
+use machine6502::defs::Machine;
+
+fn main() {
+    let _q = Machine::new();
+
+    println!("Hello, 6502?");
+}
+*/
+
