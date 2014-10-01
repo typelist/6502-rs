@@ -110,6 +110,16 @@ impl Status {
     pub fn get_carry(self) -> i8 {
         if self.contains(ps_carry) { 1 } else { 0 }
     }
+
+    pub fn set_sign_and_zero_from_val(&mut self, value: i8) {
+        // JAM: There must be a more concise way to do this, that also
+        //      guarantees that `mask` matches which arguments we specify
+        //      explicitly...
+        self.set_with_mask(ps_negative | ps_zero, 
+                           Status::new(StatusArgs { negative: value < 0,
+                                                    zero: value == 0,
+                                                    ..StatusArgs::none() }));
+    }
 }
 
 #[deriving(PartialEq, Eq, PartialOrd, Ord)]
